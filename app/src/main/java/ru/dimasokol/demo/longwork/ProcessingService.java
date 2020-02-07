@@ -73,8 +73,8 @@ public class ProcessingService extends Service implements LongWorkView {
     }
 
     @Override
-    public void showError(int messageId) {
-
+    public void showError(int messageId, String argument) {
+        // Можно показать оповещение
     }
 
     @Override

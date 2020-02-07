@@ -2,6 +2,9 @@
     <string name="app_name">VeryLong</string>
 
     <string name="error_generic">Неизвестная ошибка</string>
+    <string name="error_processing">Ошибка обработки %1$s</string>
+    <string name="error_downloading">Ошибка загрузки %1$s</string>
+    <string name="error_listing">Ошибка получения списка</string>
 
     <string name="progress_starting">Инициализация…</string>
     <string name="progress_downloading">Загружается %1$s…</string>

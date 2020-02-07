@@ -66,8 +66,8 @@ public class MainActivity extends AppCompatActivity implements LongWorkView {
     }
 
     @Override
-    public void showError(int messageId) {
-        mProgressText.setText(messageId);
+    public void showError(int messageId, String argument) {
+        mProgressText.setText(getString(messageId, argument));
         mProgressBar.setVisibility(View.INVISIBLE);
         mCompleted = true;
     }

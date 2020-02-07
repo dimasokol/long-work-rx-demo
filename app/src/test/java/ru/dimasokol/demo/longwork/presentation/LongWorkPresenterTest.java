@@ -10,6 +10,7 @@ import ru.dimasokol.demo.longwork.usecase.WorkStep;
 import ru.dimasokol.demo.longwork.usecase.WorkStepTestCreator;
 
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -41,7 +42,7 @@ public class LongWorkPresenterTest {
         verify(mFirstView).showProgress(anyInt(), eq(""), eq(-1));
 
         mPresenter.startLongWork();
-        verify(mFirstView).showError(anyInt());
+        verify(mFirstView).showError(anyInt(), eq(null));
     }
 
     @Test
@@ -74,7 +75,7 @@ public class LongWorkPresenterTest {
 
         verifyZeroInteractions(mSecondView);
         verify(mFirstView).showProgress(anyInt(), eq(WorkStepTestCreator.WORK_SUBJECT), eq(WorkStepTestCreator.PROGRESS));
-        verify(mFirstView, never()).showError(anyInt());
+        verify(mFirstView, never()).showError(anyInt(), anyString());
     }
 
     @Test

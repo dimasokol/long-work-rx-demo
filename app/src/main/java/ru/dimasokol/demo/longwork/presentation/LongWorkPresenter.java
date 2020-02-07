@@ -4,6 +4,7 @@ import androidx.annotation.StringRes;
 
 import io.reactivex.disposables.Disposable;
 import ru.dimasokol.demo.longwork.R;
+import ru.dimasokol.demo.longwork.exceptions.UserException;
 import ru.dimasokol.demo.longwork.usecase.LongWorkDemoInteractor;
 import ru.dimasokol.demo.longwork.usecase.WorkStep;
 import ru.dimasokol.demo.longwork.utils.SchedulersHolder;
@@ -20,13 +21,13 @@ public class LongWorkPresenter {
     private WorkStep mWorkStep = WorkStep.NOT_STARTED;
 
     private LongWorkView mView;
-    private Throwable mException;
+    private UserException mException;
 
     /**
-     * Конструктор принимает обязательный интерактор, и обязательный
+     * Конструктор принимает обязательный интерактор, и обязательный источник планировщиков
      *
-     * @param interactor
-     * @param schedulersHolder
+     * @param interactor интерактор
+     * @param schedulersHolder источник планировщиков для потоков RX
      */
     public LongWorkPresenter(LongWorkDemoInteractor interactor, SchedulersHolder schedulersHolder) {
         mInteractor = interactor;
@@ -84,7 +85,11 @@ public class LongWorkPresenter {
                     mWorkStep = workStep;
                     notifyView();
                 }, throwable -> {
-                    mException = throwable;
+                    if (throwable instanceof UserException) {
+                        mException = (UserException) throwable;
+                    } else {
+                        mException = UserException.from((Exception) throwable);
+                    }
                     notifyView();
                 }, () -> {
                     mWorkStep = WorkStep.COMPLETED;
@@ -99,7 +104,8 @@ public class LongWorkPresenter {
 
         // Есть эксепшен = ошибка
         if (mException != null) {
-            mView.showError(R.string.error_generic);
+            mView.showError(mException.getMessageRes(),
+                    mException.getMessageArgument() != null? mException.getMessageArgument().toString() : null);
             return;
         }
 
