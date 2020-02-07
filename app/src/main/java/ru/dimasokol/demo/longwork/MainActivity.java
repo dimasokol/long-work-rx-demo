@@ -58,24 +58,32 @@ public class MainActivity extends AppCompatActivity implements LongWorkView {
     }
 
     @Override
-    public void showProgress(int messageId, String name, int progress) {
-        mProgressBar.setVisibility(View.VISIBLE);
-        mProgressText.setText(getString(messageId, name, progress));
-        mProgressBar.setIndeterminate(progress < 0);
-        mProgressBar.setProgress(progress);
-    }
+    public void renderState(ViewState state) {
+        if (state.getException() != null) {
+            mCompleted = true;
+            mProgressBar.setVisibility(View.INVISIBLE);
+            mProgressText.setText(getString(state.getException().getMessageRes(), state.getException().getMessageArgument()));
+        } else {
+            int messageId = R.string.app_name;
 
-    @Override
-    public void showError(int messageId, String argument) {
-        mProgressText.setText(getString(messageId, argument));
-        mProgressBar.setVisibility(View.INVISIBLE);
-        mCompleted = true;
-    }
+            switch (state.getStep().getStage()) {
+                case STARTING_UP:
+                    messageId = R.string.progress_starting;
+                    break;
+                case DOWNLOADING:
+                    messageId = R.string.progress_downloading;
+                    break;
+                case PROCESSING:
+                    messageId = R.string.progress_processing;
+                    break;
+                case COMPLETED:
+                    mCompleted = true;
+                    break;
+            }
 
-    @Override
-    public void onCompleted() {
-        mCompleted = true;
-        mProgressText.setText(R.string.progress_completed);
-        mProgressBar.setVisibility(View.INVISIBLE);
+            mProgressBar.setIndeterminate(state.getStep().getTotalProgress() < 0);
+            mProgressBar.setProgress(state.getStep().getTotalProgress());
+            mProgressText.setText(getString(messageId, state.getStep().getWorkSubject(), state.getStep().getTotalProgress()));
+        }
     }
 }

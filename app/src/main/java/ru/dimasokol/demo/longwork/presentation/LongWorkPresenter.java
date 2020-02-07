@@ -1,9 +1,6 @@
 package ru.dimasokol.demo.longwork.presentation;
 
-import androidx.annotation.StringRes;
-
 import io.reactivex.disposables.Disposable;
-import ru.dimasokol.demo.longwork.R;
 import ru.dimasokol.demo.longwork.exceptions.UserException;
 import ru.dimasokol.demo.longwork.usecase.LongWorkDemoInteractor;
 import ru.dimasokol.demo.longwork.usecase.WorkStep;
@@ -18,10 +15,9 @@ public class LongWorkPresenter {
     private final SchedulersHolder mSchedulersHolder;
 
     private Disposable mDisposable;
-    private WorkStep mWorkStep = WorkStep.NOT_STARTED;
-
     private LongWorkView mView;
-    private UserException mException;
+
+    private LongWorkView.ViewState mViewState = new LongWorkView.ViewState(WorkStep.NOT_STARTED, null);
 
     /**
      * Конструктор принимает обязательный интерактор, и обязательный источник планировщиков
@@ -82,54 +78,26 @@ public class LongWorkPresenter {
                 .subscribeOn(mSchedulersHolder.getIoScheduler())
                 .observeOn(mSchedulersHolder.getMainScheduler())
                 .subscribe(workStep -> {
-                    mWorkStep = workStep;
+                    mViewState = new LongWorkView.ViewState(workStep, null);
                     notifyView();
                 }, throwable -> {
+                    UserException exception;
                     if (throwable instanceof UserException) {
-                        mException = (UserException) throwable;
+                        exception = (UserException) throwable;
                     } else {
-                        mException = UserException.from((Exception) throwable);
+                        exception = UserException.from((Exception) throwable);
                     }
+                    mViewState = new LongWorkView.ViewState(WorkStep.COMPLETED, exception);
                     notifyView();
                 }, () -> {
-                    mWorkStep = WorkStep.COMPLETED;
+                    mViewState = new LongWorkView.ViewState(WorkStep.COMPLETED, null);
                     notifyView();
                 });
     }
 
     private void notifyView() {
-        if (mView == null) {
-            return;
+        if (mView != null) {
+            mView.renderState(mViewState);
         }
-
-        // Есть эксепшен = ошибка
-        if (mException != null) {
-            mView.showError(mException.getMessageRes(),
-                    mException.getMessageArgument() != null? mException.getMessageArgument().toString() : null);
-            return;
-        }
-
-        // Процесс завершён без эксепшена = порядок
-        if (mWorkStep.getStage() == WorkStep.Stage.COMPLETED) {
-            mView.onCompleted();
-            return;
-        }
-
-        // Иначе процесс у нас идёт
-        @StringRes int message = R.string.app_name;
-
-        switch (mWorkStep.getStage()) {
-            case STARTING_UP:
-                message = R.string.progress_starting;
-                break;
-            case DOWNLOADING:
-                message = R.string.progress_downloading;
-                break;
-            case PROCESSING:
-                message = R.string.progress_processing;
-                break;
-        }
-
-        mView.showProgress(message, mWorkStep.getWorkSubject(), mWorkStep.getTotalProgress());
     }
 }

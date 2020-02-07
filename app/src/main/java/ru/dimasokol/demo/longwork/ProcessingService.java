@@ -14,6 +14,7 @@ import androidx.core.app.NotificationManagerCompat;
 
 import ru.dimasokol.demo.longwork.presentation.LongWorkPresenter;
 import ru.dimasokol.demo.longwork.presentation.LongWorkView;
+import ru.dimasokol.demo.longwork.usecase.WorkStep;
 
 /**
  * Сервис, держащий приложение живым на момент ухода с экрана активити
@@ -65,21 +66,29 @@ public class ProcessingService extends Service implements LongWorkView {
     }
 
     @Override
-    public void showProgress(int messageId, String name, int progress) {
-        NotificationManagerCompat manager = NotificationManagerCompat.from(this);
-        mNotification = createNotification(messageId, name, progress);
+    public void renderState(ViewState state) {
+        if (state.getStep().getStage() == WorkStep.Stage.COMPLETED) {
+            stopSelf();
+        } else {
+            int messageId = R.string.service_title;
 
-        manager.notify(NOTIFICATION_ID, mNotification);
-    }
+            switch (state.getStep().getStage()) {
+                case STARTING_UP:
+                    messageId = R.string.progress_starting;
+                    break;
+                case DOWNLOADING:
+                    messageId = R.string.progress_downloading;
+                    break;
+                case PROCESSING:
+                    messageId = R.string.progress_processing;
+                    break;
+            }
 
-    @Override
-    public void showError(int messageId, String argument) {
-        // Можно показать оповещение
-    }
+            NotificationManagerCompat manager = NotificationManagerCompat.from(this);
+            mNotification = createNotification(messageId, state.getStep().getWorkSubject(), state.getStep().getTotalProgress());
 
-    @Override
-    public void onCompleted() {
-        stopSelf();
+            manager.notify(NOTIFICATION_ID, mNotification);
+        }
     }
 
     private Notification createNotification(int messageId, String name, int progress) {
