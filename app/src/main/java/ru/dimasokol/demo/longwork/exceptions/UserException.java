@@ -15,17 +15,20 @@ public class UserException extends Exception {
     @Nullable
     private final Object mMessageArgument;
 
+    public static UserException from(Throwable t) {
+        if (t instanceof UserException) {
+            return (UserException) t;
+        }
 
-    public static UserException from(NetworkException e) {
-        String filename = e.getFileName();
-        return new UserException(filename != null? R.string.error_downloading : R.string.error_listing, filename);
-    }
+        if (t instanceof NetworkException) {
+            String filename = ((NetworkException) t).getFileName();
+            return new UserException(filename != null? R.string.error_downloading : R.string.error_listing, filename);
+        }
 
-    public static UserException from(ProcessingException e) {
-        return new UserException(R.string.error_processing, e.getFileName());
-    }
+        if (t instanceof ProcessingException) {
+            return new UserException(R.string.error_processing, ((ProcessingException) t).getFileName());
+        }
 
-    public static UserException from(Exception e) {
         return new UserException(R.string.error_generic, null);
     }
 

@@ -33,10 +33,6 @@ public final class WorkStep {
         mTotalProgress = totalProgress;
     }
 
-    WorkStep(@NonNull Stage stage, @NonNull String workSubject) {
-        this(stage, workSubject, PROGRESS_UNDEFINED);
-    }
-
     WorkStep(@NonNull Stage stage) {
         this(stage, "", PROGRESS_UNDEFINED);
     }

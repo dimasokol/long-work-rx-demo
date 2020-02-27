@@ -1,7 +1,5 @@
 package ru.dimasokol.demo.longwork.usecase;
 
-import android.util.Log;
-
 import java.util.List;
 
 import io.reactivex.Emitter;
@@ -27,8 +25,6 @@ public class DownloadInteractorImpl implements DownloadInteractor {
 
             @Override
             public void accept(List<String> files, Emitter<String> emitter) throws Exception {
-                Log.d("DownloadInteractor", "Downloading " + files.get(mCurrent));
-
                 try {
                     mDownloadRepository.downloadFile(files.get(mCurrent));
                     emitter.onNext(files.get(mCurrent));

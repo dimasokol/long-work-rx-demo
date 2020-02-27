@@ -5,7 +5,6 @@ import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.disposables.Disposable;
 import ru.dimasokol.demo.longwork.data.LongWorkRepository;
-import ru.dimasokol.demo.longwork.exceptions.NetworkException;
 import ru.dimasokol.demo.longwork.exceptions.ProcessingException;
 import ru.dimasokol.demo.longwork.exceptions.UserException;
 import ru.dimasokol.demo.longwork.utils.SchedulersHolder;
@@ -38,11 +37,7 @@ class SomeBigWorker implements ObservableOnSubscribe<WorkStep> {
         int totalProgress = mDownloadInteractor
                 .getFilesCount()
                 .doOnError(throwable -> {
-                    if (throwable instanceof NetworkException) {
-                        emitter.onError(UserException.from((NetworkException) throwable));
-                    } else {
-                        emitter.onError(throwable);
-                    }
+                    emitter.onError(UserException.from(throwable));
                 })
                 .onErrorReturnItem(0)
                 .blockingGet();
@@ -51,6 +46,7 @@ class SomeBigWorker implements ObservableOnSubscribe<WorkStep> {
 
         mCurrentProgress = 0;
 
+        // Flowable поддерживает backpressure:
         mDisposable = filesSource
                 .subscribeOn(mSchedulersHolder.getIoScheduler())
                 .observeOn(mSchedulersHolder.getProcessingScheduler(), false, MAX_DOWNLOADED_FILES)

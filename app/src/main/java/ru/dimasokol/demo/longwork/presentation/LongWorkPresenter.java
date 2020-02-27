@@ -86,12 +86,7 @@ public class LongWorkPresenter {
                     notifyView();
                 }, throwable -> {
                     throwable.printStackTrace();
-
-                    if (throwable instanceof UserException) {
-                        mException = (UserException) throwable;
-                    } else {
-                        mException = UserException.from((Exception) throwable);
-                    }
+                    mException = UserException.from(throwable);
                     notifyView();
                 }, () -> {
                     mWorkStep = WorkStep.COMPLETED;

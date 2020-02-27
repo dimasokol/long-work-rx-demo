@@ -4,9 +4,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 
-import java.util.Arrays;
-import java.util.List;
-
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import ru.dimasokol.demo.longwork.data.LongWorkRepository;
@@ -16,10 +13,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static ru.dimasokol.demo.longwork.usecase.DownloadInteractorImplTest.MOCK_FILES;
 
 public class LongWorkDemoInteractorImplTest {
-
-    private static final List<String> MOCK_FILES = Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m");
 
     private LongWorkDemoInteractorImpl mInteractor;
     private LongWorkRepository mLongWorkRepository;
