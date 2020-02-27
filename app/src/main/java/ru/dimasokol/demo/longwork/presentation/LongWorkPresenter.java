@@ -90,8 +90,10 @@ public class LongWorkPresenter {
                     mViewState = new LongWorkView.ViewState(WorkStep.COMPLETED, exception);
                     notifyView();
                 }, () -> {
-                    mViewState = new LongWorkView.ViewState(WorkStep.COMPLETED, null);
-                    notifyView();
+                    if (mViewState.getException() == null) {
+                        mViewState = new LongWorkView.ViewState(WorkStep.COMPLETED, null);
+                        notifyView();
+                    }
                 });
     }
 

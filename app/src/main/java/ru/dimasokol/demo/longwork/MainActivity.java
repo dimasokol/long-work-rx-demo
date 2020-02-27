@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements LongWorkView {
             mProgressText.setText(getString(state.getException().getMessageRes(), state.getException().getMessageArgument()));
         } else {
             int messageId = R.string.app_name;
+            int visibility = View.VISIBLE;
 
             switch (state.getStep().getStage()) {
                 case STARTING_UP:
@@ -77,12 +78,15 @@ public class MainActivity extends AppCompatActivity implements LongWorkView {
                     messageId = R.string.progress_processing;
                     break;
                 case COMPLETED:
+                    messageId = R.string.progress_completed;
                     mCompleted = true;
+                    visibility = View.INVISIBLE;
                     break;
             }
 
             mProgressBar.setIndeterminate(state.getStep().getTotalProgress() < 0);
             mProgressBar.setProgress(state.getStep().getTotalProgress());
+            mProgressBar.setVisibility(visibility);
             mProgressText.setText(getString(messageId, state.getStep().getWorkSubject(), state.getStep().getTotalProgress()));
         }
     }
