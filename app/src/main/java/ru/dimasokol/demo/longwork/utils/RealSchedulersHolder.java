@@ -15,6 +15,11 @@ public class RealSchedulersHolder implements SchedulersHolder {
     }
 
     @Override
+    public Scheduler getProcessingScheduler() {
+        return Schedulers.computation();
+    }
+
+    @Override
     public Scheduler getMainScheduler() {
         return AndroidSchedulers.mainThread();
     }

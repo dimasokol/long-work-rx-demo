@@ -79,12 +79,14 @@ public class LongWorkPresenter {
         }
 
         mDisposable = mInteractor.startVeryLongWork()
-                .subscribeOn(mSchedulersHolder.getIoScheduler())
+                .subscribeOn(mSchedulersHolder.getProcessingScheduler())
                 .observeOn(mSchedulersHolder.getMainScheduler())
                 .subscribe(workStep -> {
                     mWorkStep = workStep;
                     notifyView();
                 }, throwable -> {
+                    throwable.printStackTrace();
+
                     if (throwable instanceof UserException) {
                         mException = (UserException) throwable;
                     } else {

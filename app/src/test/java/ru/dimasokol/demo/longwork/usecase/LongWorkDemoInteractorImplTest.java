@@ -7,8 +7,10 @@ import org.mockito.ArgumentMatchers;
 import java.util.Arrays;
 import java.util.List;
 
-import ru.dimasokol.demo.longwork.data.DownloadRepository;
+import io.reactivex.Flowable;
+import io.reactivex.Single;
 import ru.dimasokol.demo.longwork.data.LongWorkRepository;
+import ru.dimasokol.demo.longwork.presentation.utils.TestSchedulersHolder;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -17,20 +19,20 @@ import static org.mockito.Mockito.when;
 
 public class LongWorkDemoInteractorImplTest {
 
-    private static final List<String> MOCK_FILES = Arrays.asList("a", "b", "c");
+    private static final List<String> MOCK_FILES = Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m");
 
     private LongWorkDemoInteractorImpl mInteractor;
-    private DownloadRepository mDownloadRepository;
     private LongWorkRepository mLongWorkRepository;
+    private DownloadInteractor mDownloadInteractor;
 
     @Before
     public void setUp() throws Exception {
-        mDownloadRepository = mock(DownloadRepository.class);
         mLongWorkRepository = mock(LongWorkRepository.class);
+        mDownloadInteractor = mock(DownloadInteractor.class);
+        when(mDownloadInteractor.downloadFiles()).thenReturn(Flowable.fromIterable(MOCK_FILES));
+        when(mDownloadInteractor.getFilesCount()).thenReturn(Single.just(MOCK_FILES.size()));
 
-        when(mDownloadRepository.getFileNames()).thenReturn(MOCK_FILES);
-
-        mInteractor = new LongWorkDemoInteractorImpl(mDownloadRepository, mLongWorkRepository);
+        mInteractor = new LongWorkDemoInteractorImpl(mDownloadInteractor, mLongWorkRepository, new TestSchedulersHolder());
     }
 
     @Test
@@ -40,8 +42,6 @@ public class LongWorkDemoInteractorImplTest {
                 .test()
                 .assertComplete();
 
-        verify(mDownloadRepository).getFileNames();
-        verify(mDownloadRepository, times(MOCK_FILES.size())).downloadFile(ArgumentMatchers.anyString());
         verify(mLongWorkRepository, times(MOCK_FILES.size())).processFile(ArgumentMatchers.anyString());
     }
 }

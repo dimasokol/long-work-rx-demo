@@ -16,6 +16,13 @@ public interface SchedulersHolder {
     Scheduler getIoScheduler();
 
     /**
+     * Планировщик задач обработки данных
+     *
+     * @return Планировщик задач обработки загруженного контента, для {@code subscribeOn}.
+     */
+    Scheduler getProcessingScheduler();
+
+    /**
      * Планировщик для результатов
      *
      * @return Планировщик для получения результатов, для {@code observeOn}.

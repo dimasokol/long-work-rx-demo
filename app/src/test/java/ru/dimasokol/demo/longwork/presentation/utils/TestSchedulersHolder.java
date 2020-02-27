@@ -15,6 +15,11 @@ public class TestSchedulersHolder implements SchedulersHolder {
     }
 
     @Override
+    public Scheduler getProcessingScheduler() {
+        return Schedulers.trampoline();
+    }
+
+    @Override
     public Scheduler getMainScheduler() {
         return Schedulers.trampoline();
     }

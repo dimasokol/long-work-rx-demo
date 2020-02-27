@@ -1,60 +1,73 @@
 package ru.dimasokol.demo.longwork.usecase;
 
-import java.util.List;
-
+import io.reactivex.Flowable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
-import ru.dimasokol.demo.longwork.data.DownloadRepository;
+import io.reactivex.disposables.Disposable;
 import ru.dimasokol.demo.longwork.data.LongWorkRepository;
 import ru.dimasokol.demo.longwork.exceptions.NetworkException;
 import ru.dimasokol.demo.longwork.exceptions.ProcessingException;
 import ru.dimasokol.demo.longwork.exceptions.UserException;
+import ru.dimasokol.demo.longwork.utils.SchedulersHolder;
 
 /**
  * Реализация долгой-долгой работы
  */
 class SomeBigWorker implements ObservableOnSubscribe<WorkStep> {
 
-    private final DownloadRepository mDownloadRepository;
-    private final LongWorkRepository mLongWorkRepository;
+    /**
+     * Более этого количества файлов загружаться не будет никогда
+     */
+    public static final int MAX_DOWNLOADED_FILES = 10;
 
-    SomeBigWorker(DownloadRepository downloadRepository, LongWorkRepository longWorkRepository) {
-        mDownloadRepository = downloadRepository;
+    private final DownloadInteractor mDownloadInteractor;
+    private final LongWorkRepository mLongWorkRepository;
+    private final SchedulersHolder mSchedulersHolder;
+
+    private int mCurrentProgress = 0;
+    private Disposable mDisposable;
+
+    SomeBigWorker(DownloadInteractor downloadInteractor, LongWorkRepository longWorkRepository, SchedulersHolder schedulersHolder) {
+        mDownloadInteractor = downloadInteractor;
         mLongWorkRepository = longWorkRepository;
+        mSchedulersHolder = schedulersHolder;
     }
 
     @Override
     public void subscribe(ObservableEmitter<WorkStep> emitter) throws UserException {
-        try {
-            List<String> stubFilenames = mDownloadRepository.getFileNames();
+        int totalProgress = mDownloadInteractor
+                .getFilesCount()
+                .doOnError(throwable -> {
+                    if (throwable instanceof NetworkException) {
+                        emitter.onError(UserException.from((NetworkException) throwable));
+                    } else {
+                        emitter.onError(throwable);
+                    }
+                })
+                .onErrorReturnItem(0)
+                .blockingGet();
 
-            int totalProgress = stubFilenames.size() * 2;
-            int currentProgress = 0;
+        Flowable<String> filesSource = mDownloadInteractor.downloadFiles();
 
-            // Теперь типа скачиваем файлы
-            for (String filename : stubFilenames) {
-                currentProgress++;
-                emitter.onNext(WorkStep.downloading(filename, relativeProgress(currentProgress, totalProgress)));
-                mDownloadRepository.downloadFile(filename);
-            }
+        mCurrentProgress = 0;
 
-            // А теперь типа обрабатываем
-            for (String filename : stubFilenames) {
-                currentProgress++;
-                emitter.onNext(WorkStep.processing(filename, relativeProgress(currentProgress, totalProgress)));
-                mLongWorkRepository.processFile(filename);
-            }
+        mDisposable = filesSource
+                .subscribeOn(mSchedulersHolder.getIoScheduler())
+                .observeOn(mSchedulersHolder.getProcessingScheduler(), false, MAX_DOWNLOADED_FILES)
+                .subscribe(file -> {
+                        mCurrentProgress++;
+                        emitter.onNext(WorkStep.processing(file, relativeProgress(mCurrentProgress, totalProgress)));
 
-        } catch (NetworkException network) {
-            throw UserException.from(network);
-        } catch (ProcessingException processing) {
-            throw UserException.from(processing);
-        } catch (Exception other) {
-            throw UserException.from(other);
-        }
-
-        emitter.onComplete();
-
+                        try {
+                            mLongWorkRepository.processFile(file);
+                        } catch (ProcessingException unable) {
+                            throw UserException.from(unable);
+                        } finally {
+                            // TODO: delete file
+                        }
+                    },
+                    emitter::onError,
+                    emitter::onComplete);
     }
 
 
